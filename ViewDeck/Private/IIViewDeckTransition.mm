@@ -184,11 +184,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)updateInteractiveTransition:(UIGestureRecognizer *)recognizer {
     let containerView = self.viewDeckController.view;
-    CGPoint point = [recognizer locationInView:containerView];
     CGFloat overallDistance = CGRectGetMinX(self.finalSideFrame) - CGRectGetMinX(self.initialSideFrame);
-    CGFloat relevantEdgePositionForDistanceCovered = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? CGRectGetMaxX(self.initialSideFrame) : CGRectGetMinX(self.initialSideFrame));
-    CGFloat distanceCovered = point.x - relevantEdgePositionForDistanceCovered;
-    double fractionComplete = IILimitFraction(distanceCovered / overallDistance);
+    double fractionComplete;
+    if ([recognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]]) {
+        CGPoint point = [recognizer locationInView:containerView];
+        CGFloat relevantEdgePositionForDistanceCovered = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? CGRectGetMaxX(self.initialSideFrame) : CGRectGetMinX(self.initialSideFrame));
+        CGFloat distanceCovered = point.x - relevantEdgePositionForDistanceCovered;
+        fractionComplete = IILimitFraction(distanceCovered / overallDistance);
+    } else if ([recognizer isMemberOfClass:[UIPanGestureRecognizer class]]) {
+        UIPanGestureRecognizer *panRecognizer = (UIPanGestureRecognizer *)recognizer;
+        CGFloat xTranslation = [panRecognizer translationInView:containerView].x;
+        fractionComplete = IILimitFraction(xTranslation / overallDistance);
+    } else {
+        NSLog(@"Unrecognized recognizer received for updating interactive transition");
+        return;
+    }
     [self.animator updateInteractiveTransition:self fractionCompleted:fractionComplete];
 }
 
