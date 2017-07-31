@@ -184,15 +184,25 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)updateInteractiveTransition:(UIGestureRecognizer *)recognizer {
     let containerView = self.viewDeckController.view;
-    CGPoint point = [recognizer locationInView:containerView];
     CGFloat overallDistance = CGRectGetMinX(self.finalSideFrame) - CGRectGetMinX(self.initialSideFrame);
-    CGFloat relevantEdgePositionForDistanceCovered = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? CGRectGetMaxX(self.initialSideFrame) : CGRectGetMinX(self.initialSideFrame));
-    CGFloat distanceCovered = point.x - relevantEdgePositionForDistanceCovered;
-    double fractionComplete = IILimitFraction(distanceCovered / overallDistance);
+    double fractionComplete;
+    if ([recognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]]) {
+        CGPoint point = [recognizer locationInView:containerView];
+        CGFloat relevantEdgePositionForDistanceCovered = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? CGRectGetMaxX(self.initialSideFrame) : CGRectGetMinX(self.initialSideFrame));
+        CGFloat distanceCovered = point.x - relevantEdgePositionForDistanceCovered;
+        fractionComplete = IILimitFraction(distanceCovered / overallDistance);
+    } else if ([recognizer isMemberOfClass:[UIPanGestureRecognizer class]]) {
+        UIPanGestureRecognizer *panRecognizer = (UIPanGestureRecognizer *)recognizer;
+        CGFloat xTranslation = [panRecognizer translationInView:containerView].x;
+        fractionComplete = IILimitFraction(xTranslation / overallDistance);
+    } else {
+        NSLog(@"Unrecognized recognizer received for updating interactive transition");
+        return;
+    }
     [self.animator updateInteractiveTransition:self fractionCompleted:fractionComplete];
 }
 
-- (void)endInteractiveTransition:(UIGestureRecognizer *)recognizer {
+- (BOOL)endInteractiveTransition:(UIGestureRecognizer *)recognizer {
     CGPoint velocity = CGPointZero;
     if ([recognizer isKindOfClass:UIPanGestureRecognizer.class]) {
         let panRecognizer = (UIPanGestureRecognizer *)recognizer;
@@ -202,8 +212,8 @@ NS_ASSUME_NONNULL_BEGIN
     CGFloat nativeTransitionDirection = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? 1.0 : -1.0);
     BOOL completeSuccessful = ((nativeTransitionDirection > 0) == (velocity.x > 0));
     self->_flags.cancelled = !completeSuccessful;
-
     [self.animator animateTransition:self velocity:velocity];
+    return completeSuccessful;
 }
 
 
