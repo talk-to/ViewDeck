@@ -39,7 +39,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Managing Interactive Transitions
 - (void)beginInteractiveTransition:(UIGestureRecognizer *)recognizer;
 - (void)updateInteractiveTransition:(UIGestureRecognizer *)recognizer;
-- (void)endInteractiveTransition:(UIGestureRecognizer *)recognizer;
+
+/**
+ * @returns whether the transition was ended successfully (i.e. was not cancelled)
+ */
+- (BOOL)endInteractiveTransition:(UIGestureRecognizer *)recognizer;
 
 /// @name Managing Animated Transitions
 - (void)performTransition:(BOOL)animated;

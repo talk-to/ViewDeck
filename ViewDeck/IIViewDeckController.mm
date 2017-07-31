@@ -414,15 +414,21 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
         } break;
         case UIGestureRecognizerStateCancelled: {
             NSParameterAssert(recognizer == self.currentInteractiveGesture);
-            [self.currentTransition endInteractiveTransition:recognizer];
+            [self endInteractiveTransitionForRecognizer:recognizer];
         } break;
         case UIGestureRecognizerStateEnded: {
             NSParameterAssert(recognizer == self.currentInteractiveGesture);
-            [self.currentTransition endInteractiveTransition:recognizer];
+            [self endInteractiveTransitionForRecognizer:recognizer];
         } break;
         case UIGestureRecognizerStateFailed:
         case UIGestureRecognizerStatePossible:
             break;
+    }
+}
+- (void)endInteractiveTransitionForRecognizer:(UIGestureRecognizer *)recognizer {
+    BOOL isCancelled = ![self.currentTransition endInteractiveTransition:recognizer];
+    if (recognizer == self.decorationPanGestureRecognizer && isCancelled) {
+        [self.delegate viewDeckController:self didOpenSide:self.openSide];
     }
 }
 

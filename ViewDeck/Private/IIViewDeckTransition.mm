@@ -202,7 +202,7 @@ NS_ASSUME_NONNULL_BEGIN
     [self.animator updateInteractiveTransition:self fractionCompleted:fractionComplete];
 }
 
-- (void)endInteractiveTransition:(UIGestureRecognizer *)recognizer {
+- (BOOL)endInteractiveTransition:(UIGestureRecognizer *)recognizer {
     CGPoint velocity = CGPointZero;
     if ([recognizer isKindOfClass:UIPanGestureRecognizer.class]) {
         let panRecognizer = (UIPanGestureRecognizer *)recognizer;
@@ -212,8 +212,8 @@ NS_ASSUME_NONNULL_BEGIN
     CGFloat nativeTransitionDirection = (CGRectGetMinX(self.initialSideFrame) < CGRectGetMinX(self.finalSideFrame) ? 1.0 : -1.0);
     BOOL completeSuccessful = ((nativeTransitionDirection > 0) == (velocity.x > 0));
     self->_flags.cancelled = !completeSuccessful;
-
     [self.animator animateTransition:self velocity:velocity];
+    return completeSuccessful;
 }
 
 
